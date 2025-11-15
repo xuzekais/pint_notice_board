@@ -1,0 +1,37 @@
+-- Seed data for t_address_type (address_num is AUTO_INCREMENT PRIMARY KEY)
+-- Date: 2025-11-14
+
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('图书馆', '须备注“图书馆”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('科技楼B', '须备注“科B”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('15栋', '原中苑1', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('6栋', '原中苑2', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('2栋', '原中苑3', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('1栋', '原中苑4', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('24栋', '原中苑5', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('3栋', '原中苑6', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('5栋', '原中苑7', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('7栋', '原中苑8', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('8栋', '原中苑9', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('12栋', '原中苑10', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('9栋', '原中苑11', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('10栋', '原中苑12', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('11栋', '原中苑13', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('20栋', '南苑1', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('21栋', '南苑2', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('22栋', '南苑3', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('17栋', '南苑4', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('16栋', '南苑5', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('23栋', '南苑6', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('18栋', '南苑7', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('19栋', '南苑8', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('25栋', '南苑9', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('26栋', '学生中心)（与中南苑同趟次', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('化工楼', '须备注“化工楼”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('服装楼', '须备注“服装楼”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('田家炳', '须备注“田家炳”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('旭日楼', '须备注“旭日”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('行政楼', '须备注“行政楼”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('电子楼', '须备注“电子”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('音乐楼', '须备注“音乐楼”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('实训楼', '须备注“实训楼”，否则可能会漏打印', NOW());
+INSERT INTO `t_address_type` (`address_text`, `extra_info`, `create_time`) VALUES ('北苑', '须备注“北苑”，否则可能会漏打印（只送到北1）', NOW());

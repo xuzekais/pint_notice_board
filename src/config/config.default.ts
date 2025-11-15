@@ -36,7 +36,7 @@ export default {
                 port: 3306,
                 username: 'root',
                 password: 'jv1234', // 替换为你的数据库密码
-                database: 'db_binance', // 替换为你的数据库名称
+                database: 'db_print_notice_board', // 替换为你的数据库名称
                 synchronize: true, // 开发环境下自动同步实体结构（生产环境建议关闭）
                 logging: true,
                 entities: ['**/entity/*.entity{.ts,.js}'], // 实体文件位置

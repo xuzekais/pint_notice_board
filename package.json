@@ -28,6 +28,7 @@
         "lodash": "^4.17.21",
         "mysql2": "^3.14.3",
         "puppeteer": "^20.2.1",
+        "socks-proxy-agent": "^8.0.5",
         "typeorm": "^0.3.25"
     },
     "devDependencies": {

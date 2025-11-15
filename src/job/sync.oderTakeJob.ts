@@ -1,16 +1,10 @@
 import { Job, IJob } from '@midwayjs/cron';
-import { FORMAT,Inject } from '@midwayjs/core';
-import { APIService } from '../service/api.service'; // 假设APIService是你用来处理API请求的服务
-import { UpdateProxyPoolService } from '../service/update_proxy_pool.service'; // 假设这是你更新代理的服务
+import { FORMAT } from '@midwayjs/core';
 @Job({
   cronTime: FORMAT.CRONTAB.EVERY_PER_5_MINUTE, // 每五分钟执行一次
   start: true, // 自动启动
 })
 export class DataSyncJob implements IJob {
-    @Inject()
-    apiService: APIService; // 假设APIService是你用来处理API请求的服务
-    @Inject()
-    updateProxyPoolService: UpdateProxyPoolService; // 假设这是你更新代理的服务
 
   async onTick() {
     console.log('定时任务触发五分钟一次');
