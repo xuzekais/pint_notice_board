@@ -21,6 +21,7 @@
         "@vitejs/plugin-legacy": "^3.0.1",
         "@vitejs/plugin-vue": "^4.0.0",
         "@vitejs/plugin-vue-jsx": "^3.0.0",
+        "element-plus": "^2.4.4",
         "eslint": "^8.32.0",
         "eslint-plugin-import": "^2.27.5",
         "eslint-plugin-vue": "^9.9.0",

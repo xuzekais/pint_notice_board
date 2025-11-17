@@ -19,7 +19,7 @@ export class UserController {
   ) {
     // page & pageSize are optional; service will handle defaults
     const p = Number(page) || 1;
-    const ps = Number(pageSize) || 0; // 0 means no limit
+    const ps = Number(pageSize) || 10; // 默认10条
     const opts = {
       page: p,
       pageSize: ps,

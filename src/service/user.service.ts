@@ -21,7 +21,7 @@ export class UserService {
     userId?: string;
   }) {
     const page = opts?.page && opts.page > 0 ? opts.page : 1;
-    const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 0;
+    const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 10;
 
     const whereParts: string[] = [];
     const whereParams: any[] = [];
@@ -63,9 +63,8 @@ export class UserService {
       havingParts.push("(MIN(o.pay_date) IS NULL AND (u.cell_phone IS NULL OR u.cell_phone = ''))");
     }
 
-    const limitClause = pageSize ? `LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}` : '';
-
-    let sql = `
+    // 构建基础查询（用于count）
+    let baseSql = `
       SELECT u.user_id, u.user_name, u.cell_phone, u.register_date,
         MIN(o.pay_date) AS first_order_date
       FROM t_user u
@@ -73,27 +72,39 @@ export class UserService {
     `;
 
     if (whereParts.length) {
-      sql += ' WHERE ' + whereParts.join(' AND ');
+      baseSql += ' WHERE ' + whereParts.join(' AND ');
     }
 
-    sql += '\n      GROUP BY u.user_id, u.user_name, u.cell_phone, u.register_date\n';
+    baseSql += '\n      GROUP BY u.user_id, u.user_name, u.cell_phone, u.register_date\n';
 
     if (havingParts.length) {
-      sql += ' HAVING ' + havingParts.join(' AND ');
+      baseSql += ' HAVING ' + havingParts.join(' AND ');
     }
 
-    sql += '\n      ORDER BY u.register_date DESC\n      ' + limitClause;
-
+    // 计算总数
+    const countSql = `SELECT COUNT(*) as total FROM (${baseSql}) as subquery`;
     const params = [...whereParams, ...havingParams];
-    const raw: any[] = await this.userRepo.query(sql, params);
+    const countResult: any[] = await this.userRepo.query(countSql, params);
+    const total = Number(countResult[0]?.total || 0);
 
-    return raw.map(r => ({
+    // 执行分页查询
+    const dataSql = baseSql + `\n      ORDER BY u.register_date DESC\n      LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
+    const raw: any[] = await this.userRepo.query(dataSql, params);
+
+    const data = raw.map(r => ({
       user_id: r.user_id,
       user_name: r.user_name,
       cell_phone: r.cell_phone,
       register_date: r.register_date ? new Date(r.register_date) : null,
       first_order_date: r.first_order_date ? new Date(r.first_order_date) : null,
     }));
+
+    return {
+      data,
+      total,
+      page,
+      pageSize,
+    };
   }
 
   /**

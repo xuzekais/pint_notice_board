@@ -1,117 +1,188 @@
 /**
- * 枚举：栋数（Building）和栋数备注（BuildingNote）
- * 值从 1 开始，顺序按照用户提供的列表。
+ * Building 映射：编码 <-> 中文
+ * - CODE_TO_CHINESE: 编码（数字）映射为中文名称
+ * - CHINESE_TO_CODE: 中文名称映射为编码（数字）
+ *
+ * 数值从 1 开始，与用户提供的顺序一致。
  */
-export enum Building {
-  // 1
-  TUSHUGUAN = 1, // 图书馆
-  // 2
-  KEJILOU_B = 2, // 科技楼B
-  // 3
-  D15 = 3, // 15栋
-  // 4
-  D6 = 4, // 6栋
-  // 5
-  D2 = 5, // 2栋
-  // 6
-  D1 = 6, // 1栋
-  // 7
-  D24 = 7, // 24栋
-  // 8
-  D3 = 8, // 3栋
-  // 9
-  D5 = 9, // 5栋
-  // 10
-  D7 = 10, // 7栋
-  // 11
-  D8 = 11, // 8栋
-  // 12
-  D12 = 12, // 12栋
-  // 13
-  D9 = 13, // 9栋
-  // 14
-  D10 = 14, // 10栋
-  // 15
-  D11 = 15, // 11栋
-  // 16
-  D20 = 16, // 20栋
-  // 17
-  D21 = 17, // 21栋
-  // 18
-  D22 = 18, // 22栋
-  // 19
-  D17 = 19, // 17栋
-  // 20
-  D16 = 20, // 16栋
-  // 21
-  D23 = 21, // 23栋
-  // 22
-  D18 = 22, // 18栋
-  // 23
-  D19 = 23, // 19栋
-  // 24
-  D25 = 24, // 25栋
-  // 25
-  D26 = 25, // 26栋
-  // 26
-  HUAGONGLOU = 26, // 化工楼
-  // 27
-  FUZHUANLOU = 27, // 服装楼
-  // 28
-  TIANJIABING = 28, // 田家炳
-  // 29
-  XURILOU = 29, // 旭日楼
-  // 30
-  XINGZHENGLOU = 30, // 行政楼
-  // 31
-  DIANZILOU = 31, // 电子楼
-  // 32
-  YINYUELOU = 32, // 音乐楼
-  // 33
-  SHIXUNLOU = 33, // 实训楼
-  // 34
-  BEIYUAN = 34, // 北苑
+
+export const CODE_TO_CHINESE: Record<number, string> = {
+	1: '图书馆',
+	2: '科技楼B',
+	3: '15栋',
+	4: '6栋',
+	5: '2栋',
+	6: '1栋',
+	7: '24栋',
+	8: '3栋',
+	9: '5栋',
+	10: '7栋',
+	11: '8栋',
+	12: '12栋',
+	13: '9栋',
+	14: '10栋',
+	15: '11栋',
+	16: '20栋',
+	17: '21栋',
+	18: '22栋',
+	19: '17栋',
+	20: '16栋',
+	21: '23栋',
+	22: '18栋',
+	23: '19栋',
+	24: '25栋',
+	25: '26栋',
+	26: '化工楼',
+	27: '服装楼',
+	28: '田家炳',
+	29: '旭日楼',
+	30: '行政楼',
+	31: '电子楼',
+	32: '音乐楼',
+	33: '实训楼',
+	34: '北苑',
+	35: '其他',
+} as const;
+
+export const CHINESE_TO_CODE: Record<string, number> = {
+	'图书馆': 1,
+	'科技楼B': 2,
+	'15栋': 3,
+	'6栋': 4,
+	'2栋': 5,
+	'1栋': 6,
+	'24栋': 7,
+	'3栋': 8,
+	'5栋': 9,
+	'7栋': 10,
+	'8栋': 11,
+	'12栋': 12,
+	'9栋': 13,
+	'10栋': 14,
+	'11栋': 15,
+	'20栋': 16,
+	'21栋': 17,
+	'22栋': 18,
+	'17栋': 19,
+	'16栋': 20,
+	'23栋': 21,
+	'18栋': 22,
+	'19栋': 23,
+	'25栋': 24,
+	'26栋': 25,
+	'化工楼': 26,
+	'服装楼': 27,
+	'田家炳': 28,
+	'旭日楼': 29,
+	'行政楼': 30,
+	'电子楼': 31,
+	'音乐楼': 32,
+	'实训楼': 33,
+	'北苑': 34,
+	'其他': 35,
+} as const;
+
+export type BuildingCode = keyof typeof CODE_TO_CHINESE;
+export type BuildingName = typeof CHINESE_TO_CODE[keyof typeof CHINESE_TO_CODE];
+
+export function codeToChinese(code?: number): string | undefined {
+	if (code == null) return undefined;
+	return (CODE_TO_CHINESE as any)[code];
 }
 
-export enum BuildingNote {
-  // 1
-  NOTE_TUSHUGUAN = 1, // 须备注“图书馆”，否则可能会漏打印
-  // 2
-  NOTE_KEB = 2, // 须备注“科B”，否则可能会漏打印
-  // 原中苑1-13
-  YUAN_ZHONGYUAN_1 = 3,
-  YUAN_ZHONGYUAN_2 = 4,
-  YUAN_ZHONGYUAN_3 = 5,
-  YUAN_ZHONGYUAN_4 = 6,
-  YUAN_ZHONGYUAN_5 = 7,
-  YUAN_ZHONGYUAN_6 = 8,
-  YUAN_ZHONGYUAN_7 = 9,
-  YUAN_ZHONGYUAN_8 = 10,
-  YUAN_ZHONGYUAN_9 = 11,
-  YUAN_ZHONGYUAN_10 = 12,
-  YUAN_ZHONGYUAN_11 = 13,
-  YUAN_ZHONGYUAN_12 = 14,
-  YUAN_ZHONGYUAN_13 = 15,
-  // 南苑1-9
-  NANYUAN_1 = 16,
-  NANYUAN_2 = 17,
-  NANYUAN_3 = 18,
-  NANYUAN_4 = 19,
-  NANYUAN_5 = 20,
-  NANYUAN_6 = 21,
-  NANYUAN_7 = 22,
-  NANYUAN_8 = 23,
-  NANYUAN_9 = 24,
-  // 学生中心（与中南苑同趟次）
-  STUDENT_CENTER = 25,
-  // 26-34: 各类须备注项
-  NOTE_HUAGONGLOU = 26, // 须备注“化工楼”，否则可能会漏打印
-  NOTE_FUZHUANLOU = 27, // 须备注“服装楼”，否则可能会漏打印
-  NOTE_TIANJIABING = 28, // 须备注“田家炳”，否则可能会漏打印
-  NOTE_XURI = 29, // 须备注“旭日”，否则可能会漏打印
-  NOTE_XINGZHENGLOU = 30, // 须备注“行政楼”，否则可能会漏打印
-  NOTE_DIANZI = 31, // 须备注“电子”，否则可能会漏打印
-  NOTE_YINYUE = 32, // 须备注“音乐楼”，否则可能会漏打印
-  NOTE_SHIXUN = 33, // 须备注“实训楼”，否则可能会漏打印
-  NOTE_BEIYUAN = 34, // 须备注“北苑”，否则可能会漏打印（只送到北1）
+export function chineseToCode(label?: string): number | undefined {
+	if (!label) return undefined;
+	return (CHINESE_TO_CODE as any)[label.trim()];
 }
+
+// --------- 栋数备注映射（数字 <-> 中文） ---------
+export const NOTE_CODE_TO_CHINESE: Record<number, string> = {
+	1: '须备注“图书馆”，否则可能会漏打印',
+	2: '须备注“科B”，否则可能会漏打印',
+	3: '原中苑1',
+	4: '原中苑2',
+	5: '原中苑3',
+	6: '原中苑4',
+	7: '原中苑5',
+	8: '原中苑6',
+	9: '原中苑7',
+	10: '原中苑8',
+	11: '原中苑9',
+	12: '原中苑10',
+	13: '原中苑11',
+	14: '原中苑12',
+	15: '原中苑13',
+	16: '南苑1',
+	17: '南苑2',
+	18: '南苑3',
+	19: '南苑4',
+	20: '南苑5',
+	21: '南苑6',
+	22: '南苑7',
+	23: '南苑8',
+	24: '南苑9',
+	25: '学生中心)（与中南苑同趟次',
+	26: '须备注“化工楼”，否则可能会漏打印',
+	27: '须备注“服装楼”，否则可能会漏打印',
+	28: '须备注“田家炳”，否则可能会漏打印',
+	29: '须备注“旭日”，否则可能会漏打印',
+	30: '须备注“行政楼”，否则可能会漏打印',
+	31: '须备注“电子”，否则可能会漏打印',
+	32: '须备注“音乐楼”，否则可能会漏打印',
+	33: '须备注“实训楼”，否则可能会漏打印',
+	34: '须备注“北苑”，否则可能会漏打印（只送到北1）',
+	35: '这个也加一下',
+} as const;
+
+export const NOTE_CHINESE_TO_CODE: Record<string, number> = {
+	'须备注“图书馆”，否则可能会漏打印': 1,
+	'须备注“科B”，否则可能会漏打印': 2,
+	'原中苑1': 3,
+	'原中苑2': 4,
+	'原中苑3': 5,
+	'原中苑4': 6,
+	'原中苑5': 7,
+	'原中苑6': 8,
+	'原中苑7': 9,
+	'原中苑8': 10,
+	'原中苑9': 11,
+	'原中苑10': 12,
+	'原中苑11': 13,
+	'原中苑12': 14,
+	'原中苑13': 15,
+	'南苑1': 16,
+	'南苑2': 17,
+	'南苑3': 18,
+	'南苑4': 19,
+	'南苑5': 20,
+	'南苑6': 21,
+	'南苑7': 22,
+	'南苑8': 23,
+	'南苑9': 24,
+	'学生中心)（与中南苑同趟次': 25,
+	'须备注“化工楼”，否则可能会漏打印': 26,
+	'须备注“服装楼”，否则可能会漏打印': 27,
+	'须备注“田家炳”，否则可能会漏打印': 28,
+	'须备注“旭日”，否则可能会漏打印': 29,
+	'须备注“行政楼”，否则可能会漏打印': 30,
+	'须备注“电子”，否则可能会漏打印': 31,
+	'须备注“音乐楼”，否则可能会漏打印': 32,
+	'须备注“实训楼”，否则可能会漏打印': 33,
+	'须备注“北苑”，否则可能会漏打印（只送到北1）': 34,
+	'这个也加一下': 35,
+} as const;
+
+export type BuildingNoteCode = keyof typeof NOTE_CODE_TO_CHINESE;
+export type BuildingNoteName = typeof NOTE_CHINESE_TO_CODE[keyof typeof NOTE_CHINESE_TO_CODE];
+
+export function noteCodeToChinese(code?: number): string | undefined {
+	if (code == null) return undefined;
+	return (NOTE_CODE_TO_CHINESE as any)[code];
+}
+
+export function chineseToNoteCode(label?: string): number | undefined {
+	if (!label) return undefined;
+	return (NOTE_CHINESE_TO_CODE as any)[label.trim()];
+}
+
+

@@ -7,6 +7,11 @@ export default {
     koa: {
         port: 7001,
     },
+    cors: {
+        origin: '*', // 允许所有来源（开发环境），生产环境建议指定前端域名
+        allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
+        credentials: true,
+    },
 
     webKey: 'HWOBZ-RICCV-3MOPO-UMRNO-WMY7Q-PPBK5',
 

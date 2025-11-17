@@ -33,6 +33,19 @@ export class ContainerLifeCycle {
   app: koa.Application;
 
   async onReady() {
+    // CORS configuration - must be before other middleware
+    this.app.use(async (ctx, next) => {
+      ctx.set('Access-Control-Allow-Origin', '*');
+      ctx.set('Access-Control-Allow-Methods', 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS');
+      ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      ctx.set('Access-Control-Allow-Credentials', 'true');
+      if (ctx.method === 'OPTIONS') {
+        ctx.status = 204;
+        return;
+      }
+      await next();
+    });
+    
     // add middleware
     this.app.useMiddleware([ReportMiddleware]);
     // add filter

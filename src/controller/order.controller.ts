@@ -22,4 +22,22 @@ export class OrderController {
     const result = await this.orderService.getOrderList({ page: p, pageSize: ps, mergeOrderId, userId, orderType, payStart, payEnd, addressNum });
     return result;
   }
+
+  @Get('/getOrderFiles')
+  async getOrderFiles(@Query('mergeOrderId') mergeOrderId: string) {
+    if (!mergeOrderId) {
+      return { error: 'mergeOrderId is required' };
+    }
+    const files = await this.orderService.getOrderFiles(mergeOrderId);
+    return { data: files };
+  }
+
+  @Get('/getOrderSummary')
+  async getOrderSummary(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const result = await this.orderService.getOrderSummary({ startDate, endDate });
+    return result;
+  }
 }

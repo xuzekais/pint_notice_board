@@ -18,11 +18,24 @@ export const constantRoutes: Array<RouteRecordRaw> = [
     //设置兜底路由
     {
         path: '/',
+        component: () => import('@/pc/layout/MainLayout.vue'),
         redirect: '/home',
         children: [
             {
                 path: '/home',
                 component: () => import('@/pc/pages/home/index.vue')
+            },
+            {
+                path: '/users',
+                component: () => import('@/pc/pages/user/index.vue')
+            },
+            {
+                path: '/orders',
+                component: () => import('@/pc/pages/order/index.vue')
+            },
+            {
+                path: '/order-summary',
+                component: () => import('@/pc/pages/order/summary.vue')
             }
         ]
     },

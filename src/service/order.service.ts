@@ -3,6 +3,7 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '@app/entity/order.entity';
 import { OrderFile } from '@app/entity/order_file.entity';
+import { chineseToCode } from '../types/building.enum';
 
 @Provide()
 export class OrderService {
@@ -60,7 +61,9 @@ export class OrderService {
     return { inserted, failed };
   }
 
+  
   mapRemoteToOrder(item: any) {
+    
     const parseDotNetDate = (s?: string) => {
       if (!s) return null;
       const m = /\/Date\((\d+)(?:[+-]\d+)?\)\//.exec(s);
@@ -76,8 +79,10 @@ export class OrderService {
     const actual_pay_price = Number(item.ActualPayPrice || item.actualPayPrice || item.actual_pay_price || 0);
     const order_status = Number(item.OrderStatus || item.orderStatus || item.order_status || 0);
     const cell_phone = item.CellPhone || item.cellPhone || item.cell_phone || null;
-    const address_num = item.AddressNum || item.addressNum || item.address_num || null;
-    const address_detail = item.Address || item.AddressDetail || item.address_detail || null;
+  const address_detail = item.Address || item.AddressDetail || item.address_detail || null;
+  // 先尝试从 address_detail 中解析栋数标签并映射为编码
+  const extractLabel = this.extractBuildingFromAddress(address_detail);
+  const address_num = extractLabel ? chineseToCode(extractLabel) : null;
     const remark = item.Remark || item.remark || null;
 
     return {
@@ -92,6 +97,41 @@ export class OrderService {
       address_detail,
       remark,
     };
+  }
+
+  /**
+   * 从 address 字符串中提取楼栋标签（按规则：
+   *  1) 获取 address 中最外层括号内的内容（从第一个 '('/ '（' 到最后一个 ')' / '）'）
+   *  2) 对该内容去除所有内层括号及其内容，保留外层主体文本并去除首尾空白
+   * 返回示例：
+   *  - "A508(图书馆（须备注…）)" -> "图书馆"
+   *  - "xxx(北苑（须备注…（只送到北1））)" -> "北苑"
+   */
+  extractBuildingFromAddress(address?: string): string | undefined {
+    if (!address) return undefined;
+    const s = String(address);
+    // 找到第一个开括号和最后一个闭括号（支持半角和全角）
+    const firstOpenIdxs = [s.indexOf('('), s.indexOf('（')].filter(i => i >= 0);
+    const lastCloseIdxs = [s.lastIndexOf(')'), s.lastIndexOf('）')].filter(i => i >= 0);
+    let inner = s;
+    if (firstOpenIdxs.length > 0 && lastCloseIdxs.length > 0) {
+      const firstOpen = Math.min(...firstOpenIdxs);
+      const lastClose = Math.max(...lastCloseIdxs);
+      if (firstOpen < lastClose) {
+        inner = s.substring(firstOpen + 1, lastClose);
+      }
+    }
+    // 反复删除最内层的括号及其内容，直到没有括号为止（处理嵌套）
+    let prev: string;
+    let cur = inner;
+    const innerParenRegex = /\([^()]*\)|（[^（）]*）/g;
+    do {
+      prev = cur;
+      cur = cur.replace(innerParenRegex, '');
+    } while (cur !== prev && innerParenRegex.test(prev));
+
+    const res = cur.trim();
+    return res === '' ? undefined : res;
   }
 
   async processRemoteOrders(rawItems: any[]): Promise<{ inserted: number; failed: string[] }> {
@@ -307,5 +347,85 @@ export class OrderService {
     }));
 
     return { data, total, page, pageSize };
+  }
+
+  /**
+   * 根据 merge_order_id 查询子订单列表（order_file 表）
+   */
+  async getOrderFiles(mergeOrderId: string) {
+    const files = await this.orderFileRepo.find({
+      where: { merge_order_id: mergeOrderId },
+      order: { id: 'ASC' },
+    });
+    return files.map(f => ({
+      id: f.id,
+      merge_order_id: f.merge_order_id,
+      order_no: f.order_no,
+      print_pages: f.print_pages,
+      paper_kind: f.paper_kind,
+      color: f.color,
+      duplex: f.duplex,
+      file_name: f.file_name,
+      file_type: f.file_type,
+      create_time: f.create_time,
+    }));
+  }
+
+  /**
+   * 按地址编码统计订单汇总
+   * 支持时间范围过滤，默认当月
+   */
+  async getOrderSummary(opts?: { startDate?: string; endDate?: string }) {
+    const whereParts: string[] = [];
+    const params: any[] = [];
+
+    // 默认当月
+    let startDate = opts?.startDate;
+    let endDate = opts?.endDate;
+    
+    if (!startDate || !endDate) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      
+      // 当月第一天
+      const firstDay = new Date(year, month, 1);
+      startDate = firstDay.toISOString().split('T')[0];
+      
+      // 当月最后一天
+      const lastDay = new Date(year, month + 1, 0);
+      endDate = lastDay.toISOString().split('T')[0];
+    }
+
+    // 支付时间范围过滤
+    whereParts.push('pay_date >= ?');
+    params.push(startDate + ' 00:00:00');
+    whereParts.push('pay_date <= ?');
+    params.push(endDate + ' 23:59:59');
+
+    const whereClause = whereParts.length ? 'WHERE ' + whereParts.join(' AND ') : '';
+
+    const sql = `
+      SELECT 
+        COALESCE(address_num, 35) as address_num,
+        COUNT(*) as order_count,
+        SUM(actual_pay_price) as total_amount
+      FROM t_order
+      ${whereClause}
+      GROUP BY COALESCE(address_num, 35)
+      ORDER BY address_num ASC
+    `;
+
+    const raw: any[] = await this.orderRepo.query(sql, params);
+    
+    return {
+      data: raw.map(r => ({
+        address_num: Number(r.address_num),
+        order_count: Number(r.order_count),
+        total_amount: Number(r.total_amount) || 0,
+      })),
+      startDate,
+      endDate,
+    };
   }
 }
