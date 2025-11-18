@@ -21,6 +21,7 @@
         "@vitejs/plugin-legacy": "^3.0.1",
         "@vitejs/plugin-vue": "^4.0.0",
         "@vitejs/plugin-vue-jsx": "^3.0.0",
+        "echarts": "^6.0.0",
         "element-plus": "^2.4.4",
         "eslint": "^8.32.0",
         "eslint-plugin-import": "^2.27.5",
@@ -36,7 +37,8 @@
         "vue-eslint-parser": "^9.1.0",
         "vue-router": "^4.1.6",
         "vue3-grid-layout-next": "^1.0.5",
-        "web": "^0.0.2"
+        "web": "^0.0.2",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@vue/eslint-config-prettier": "^7.1.0",

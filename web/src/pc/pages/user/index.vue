@@ -4,6 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>用户列表</span>
+          <el-button type="success" :loading="exportLoading" @click="exportAllUsers" style="float: right;">
+            <span v-if="!exportLoading">📥 导出所有用户</span>
+            <span v-else>导出中...</span>
+          </el-button>
         </div>
       </template>
     <el-form :inline="true" class="filter-form">
@@ -86,11 +90,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { fetchAPI } from '@/base/api';
+import * as XLSX from 'xlsx';
+import { ElMessage } from 'element-plus';
 
 const list = ref<any[]>([]);
 const page = ref(1);
 const pageSize = ref(10);
 const total = ref(0);
+const exportLoading = ref(false);
 
 // 筛选条件
 const userId = ref('');
@@ -162,6 +169,88 @@ function resetFilters() {
   firstOrderDateRange.value = null;
   hasFirstOrder.value = '';
   fetchData(1);
+}
+
+async function exportAllUsers() {
+  exportLoading.value = true;
+  try {
+    // 获取所有用户数据（不分页）
+    const params: any = { page: 1, pageSize: 999999 };
+    
+    // 保留当前筛选条件
+    if (userId.value) params.userId = userId.value;
+    if (regDateRange.value && regDateRange.value.length === 2) {
+      params.regStart = regDateRange.value[0];
+      params.regEnd = regDateRange.value[1];
+    }
+    if (firstOrderDateRange.value && firstOrderDateRange.value.length === 2) {
+      params.firstOrderStart = firstOrderDateRange.value[0];
+      params.firstOrderEnd = firstOrderDateRange.value[1];
+    }
+    if (hasFirstOrder.value) params.hasFirstOrder = hasFirstOrder.value;
+    
+    const result = await fetchAPI('/api/user/getUserList', params);
+    
+    if (!result || !result.data || result.data.length === 0) {
+      ElMessage.warning('没有可导出的数据');
+      return;
+    }
+    
+    // 格式化数据
+    const exportData = result.data.map((user: any, index: number) => ({
+      '序号': index + 1,
+      '用户ID': user.user_id || '',
+      '用户名': user.user_name || '',
+      '手机号': user.cell_phone || '',
+      '注册时间': user.register_date ? formatDateForExport(user.register_date) : '',
+      '首次下单时间': user.first_order_date ? formatDateForExport(user.first_order_date) : '',
+    }));
+    
+    // 创建工作表
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    
+    // 设置列宽
+    ws['!cols'] = [
+      { wch: 8 },  // 序号
+      { wch: 20 }, // 用户ID
+      { wch: 20 }, // 用户名
+      { wch: 15 }, // 手机号
+      { wch: 20 }, // 注册时间
+      { wch: 20 }, // 首次下单时间
+    ];
+    
+    // 创建工作簿
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '用户列表');
+    
+    // 生成文件名（包含导出时间）
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const fileName = `用户列表_${dateStr}.xlsx`;
+    
+    // 导出文件
+    XLSX.writeFile(wb, fileName);
+    
+    ElMessage.success(`成功导出 ${exportData.length} 条用户数据`);
+  } catch (e) {
+    console.error('导出失败:', e);
+    ElMessage.error('导出失败，请重试');
+  } finally {
+    exportLoading.value = false;
+  }
+}
+
+function formatDateForExport(s?: string | Date) {
+  if (!s) return '';
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hour = String(d.getHours()).padStart(2, '0');
+  const minute = String(d.getMinutes()).padStart(2, '0');
+  const second = String(d.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }
 
 onMounted(() => fetchData(1));

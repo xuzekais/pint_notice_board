@@ -428,4 +428,70 @@ export class OrderService {
       endDate,
     };
   }
+
+  /**
+   * 按小时统计订单数量（0-23小时）
+   * 支持地址编码过滤
+   */
+  async getOrderHourlyStats(opts?: { addressNum?: string; startDate?: string; endDate?: string }) {
+    const whereParts: string[] = [];
+    const params: any[] = [];
+
+    // 地址编码过滤
+    if (opts?.addressNum) {
+      whereParts.push('address_num = ?');
+      params.push(opts.addressNum);
+    }
+
+    // 默认查询最近30天的数据
+    let startDate = opts?.startDate;
+    let endDate = opts?.endDate;
+    
+    if (!startDate || !endDate) {
+      const now = new Date();
+      endDate = now.toISOString().split('T')[0];
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      startDate = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+
+    // 支付时间范围过滤
+    whereParts.push('pay_date >= ?');
+    params.push(startDate + ' 00:00:00');
+    whereParts.push('pay_date <= ?');
+    params.push(endDate + ' 23:59:59');
+
+    const whereClause = whereParts.length ? 'WHERE ' + whereParts.join(' AND ') : '';
+
+    const sql = `
+      SELECT 
+        HOUR(pay_date) as hour,
+        COUNT(*) as order_count
+      FROM t_order
+      ${whereClause}
+      GROUP BY HOUR(pay_date)
+      ORDER BY hour ASC
+    `;
+
+    const raw: any[] = await this.orderRepo.query(sql, params);
+    
+    // 构建完整的0-23小时数据，没有订单的小时补0
+    const hourlyData: Record<number, number> = {};
+    for (let i = 0; i < 24; i++) {
+      hourlyData[i] = 0;
+    }
+    
+    raw.forEach(r => {
+      const hour = Number(r.hour);
+      hourlyData[hour] = Number(r.order_count);
+    });
+
+    return {
+      data: Object.keys(hourlyData).map(h => ({
+        hour: Number(h),
+        order_count: hourlyData[Number(h)],
+      })),
+      startDate,
+      endDate,
+    };
+  }
 }

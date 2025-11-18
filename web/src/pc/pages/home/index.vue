@@ -35,6 +35,17 @@
              </el-card>
            </el-col>
          </el-row>
+         <el-row :gutter="20" style="margin-top: 20px;">
+           <el-col :span="8">
+             <el-card shadow="hover" class="quick-link">
+               <router-link to="/order-chart" class="link-content">
+                 <div class="icon">📈</div>
+                 <div class="title">时段分析</div>
+                 <div class="desc">查看24小时订单分布</div>
+               </router-link>
+             </el-card>
+           </el-col>
+         </el-row>
        </el-card>
     </div>
 </template><script setup lang="ts" name="Home">

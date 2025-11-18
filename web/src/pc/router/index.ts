@@ -36,6 +36,10 @@ export const constantRoutes: Array<RouteRecordRaw> = [
             {
                 path: '/order-summary',
                 component: () => import('@/pc/pages/order/summary.vue')
+            },
+            {
+                path: '/order-chart',
+                component: () => import('@/pc/pages/order/chart.vue')
             }
         ]
     },

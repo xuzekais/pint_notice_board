@@ -40,4 +40,14 @@ export class OrderController {
     const result = await this.orderService.getOrderSummary({ startDate, endDate });
     return result;
   }
+
+  @Get('/getOrderHourlyStats')
+  async getOrderHourlyStats(
+    @Query('addressNum') addressNum?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const result = await this.orderService.getOrderHourlyStats({ addressNum, startDate, endDate });
+    return result;
+  }
 }

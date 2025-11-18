@@ -23,6 +23,9 @@
           <el-menu-item index="/order-summary">
             <span>📊 订单汇总</span>
           </el-menu-item>
+          <el-menu-item index="/order-chart">
+            <span>📈 时段分析</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
 
@@ -59,6 +62,7 @@ const pageTitle = computed(() => {
     '/users': '用户管理',
     '/orders': '订单管理',
     '/order-summary': '订单汇总统计',
+    '/order-chart': '订单时段分析',
   };
   return titleMap[route.path] || '打印通知板';
 });
