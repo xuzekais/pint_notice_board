@@ -257,9 +257,9 @@ export class OrderService {
 
   /**
    * 查询订单列表并关联用户昵称 user_name
-   * opts: { page, pageSize, mergeOrderId, userId }
+   * opts: { page, pageSize, mergeOrderId, userId, fileName }
    */
-  async getOrderList(opts?: { page?: number; pageSize?: number; mergeOrderId?: string; userId?: string; orderType?: string; payStart?: string; payEnd?: string; addressNum?: string }) {
+  async getOrderList(opts?: { page?: number; pageSize?: number; mergeOrderId?: string; userId?: string; orderType?: string; payStart?: string; payEnd?: string; addressNum?: string; fileName?: string }) {
     const page = opts?.page && opts.page > 0 ? opts.page : 1;
     const pageSize = opts?.pageSize && opts.pageSize > 0 ? opts.pageSize : 0;
 
@@ -286,6 +286,14 @@ export class OrderService {
     if (opts?.addressNum) {
       whereParts.push('o.address_num = ?');
       params.push(opts.addressNum);
+    }
+    
+    // 文档名称模糊搜索（需要关联子订单表）
+    let needFileJoin = false;
+    if (opts?.fileName) {
+      needFileJoin = true;
+      whereParts.push('f.file_name LIKE ?');
+      params.push(`%${opts.fileName}%`);
     }
 
     // 订单类型到 order_status 的映射（假设映射如下）
@@ -316,22 +324,72 @@ export class OrderService {
     const whereClause = whereParts.length ? 'WHERE ' + whereParts.join(' AND ') : '';
     const limitClause = pageSize ? `LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}` : '';
 
+    // 如果需要根据文档名称搜索，需要关联子订单表
+    const fileJoinClause = needFileJoin ? 'INNER JOIN t_order_file f ON f.merge_order_id = o.merge_order_id' : '';
+    const distinctClause = needFileJoin ? 'DISTINCT' : '';
+
     // total count
-    const countSql = `SELECT COUNT(1) as cnt FROM t_order o LEFT JOIN t_user u ON u.user_id = o.user_id ${whereClause}`;
+    const countSql = `SELECT COUNT(${distinctClause} o.merge_order_id) as cnt FROM t_order o LEFT JOIN t_user u ON u.user_id = o.user_id ${fileJoinClause} ${whereClause}`;
     const countRes: any[] = await this.orderRepo.query(countSql, params);
     const total = (countRes && countRes[0] && Number(countRes[0].cnt)) || 0;
 
     const sql = `
-      SELECT o.merge_order_id, o.take_code, u.user_name, o.user_id, o.pay_date, o.actual_pay_price,
+      SELECT ${distinctClause} o.merge_order_id, o.take_code, u.user_name, o.user_id, o.pay_date, o.actual_pay_price,
         o.order_status, o.cell_phone, o.address_num, o.address_detail, o.remark
       FROM t_order o
       LEFT JOIN t_user u ON u.user_id = o.user_id
+      ${fileJoinClause}
       ${whereClause}
       ORDER BY o.pay_date DESC
       ${limitClause}
     `;
 
     const raw: any[] = await this.orderRepo.query(sql, params);
+    
+    // 获取所有合并订单ID
+    const mergeOrderIds = raw.map(r => r.merge_order_id);
+    
+    // 批量查询子订单
+    let childrenMap: Record<string, any[]> = {};
+    if (mergeOrderIds.length > 0) {
+      const childrenSql = `
+        SELECT id, merge_order_id, order_no, print_pages, paper_kind, color, duplex, file_name, file_type
+        FROM t_order_file
+        WHERE merge_order_id IN (${mergeOrderIds.map(() => '?').join(',')})
+        ORDER BY merge_order_id, id ASC
+      `;
+      const childrenRaw: any[] = await this.orderFileRepo.query(childrenSql, mergeOrderIds);
+      
+      // 按 merge_order_id 分组
+      childrenRaw.forEach(child => {
+        const key = child.merge_order_id;
+        if (!childrenMap[key]) {
+          childrenMap[key] = [];
+        }
+        
+        // 如果 file_type 为空，从 file_name 中提取文件后缀
+        let fileType = child.file_type;
+        if (!fileType && child.file_name) {
+          const lastDot = child.file_name.lastIndexOf('.');
+          if (lastDot > 0 && lastDot < child.file_name.length - 1) {
+            fileType = child.file_name.substring(lastDot + 1).toLowerCase();
+          }
+        }
+        
+        childrenMap[key].push({
+          id: child.id,
+          merge_order_id: child.merge_order_id,
+          order_no: child.order_no,
+          print_pages: child.print_pages,
+          paper_kind: child.paper_kind,
+          color: child.color,
+          duplex: child.duplex,
+          file_name: child.file_name,
+          file_type: fileType,
+        });
+      });
+    }
+    
     const data = raw.map(r => ({
       merge_order_id: r.merge_order_id,
       take_code: r.take_code,
@@ -344,6 +402,7 @@ export class OrderService {
       address_num: r.address_num,
       address_detail: r.address_detail,
       remark: r.remark,
+      children: childrenMap[r.merge_order_id] || [],
     }));
 
     return { data, total, page, pageSize };
@@ -357,18 +416,29 @@ export class OrderService {
       where: { merge_order_id: mergeOrderId },
       order: { id: 'ASC' },
     });
-    return files.map(f => ({
-      id: f.id,
-      merge_order_id: f.merge_order_id,
-      order_no: f.order_no,
-      print_pages: f.print_pages,
-      paper_kind: f.paper_kind,
-      color: f.color,
-      duplex: f.duplex,
-      file_name: f.file_name,
-      file_type: f.file_type,
-      create_time: f.create_time,
-    }));
+    return files.map(f => {
+      // 如果 file_type 为空，从 file_name 提取文件后缀
+      let fileType = f.file_type;
+      if (!fileType && f.file_name) {
+        const lastDot = f.file_name.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < f.file_name.length - 1) {
+          fileType = f.file_name.substring(lastDot + 1).toLowerCase();
+        }
+      }
+      
+      return {
+        id: f.id,
+        merge_order_id: f.merge_order_id,
+        order_no: f.order_no,
+        print_pages: f.print_pages,
+        paper_kind: f.paper_kind,
+        color: f.color,
+        duplex: f.duplex,
+        file_name: f.file_name,
+        file_type: fileType,
+        create_time: f.create_time,
+      };
+    });
   }
 
   /**

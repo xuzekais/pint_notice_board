@@ -16,10 +16,11 @@ export class OrderController {
     @Query('payStart') payStart?: string,
     @Query('payEnd') payEnd?: string,
     @Query('addressNum') addressNum?: string,
+    @Query('fileName') fileName?: string,
   ) {
     const p = Number(page) || 1;
     const ps = Number(pageSize) || 0;
-    const result = await this.orderService.getOrderList({ page: p, pageSize: ps, mergeOrderId, userId, orderType, payStart, payEnd, addressNum });
+    const result = await this.orderService.getOrderList({ page: p, pageSize: ps, mergeOrderId, userId, orderType, payStart, payEnd, addressNum, fileName });
     return result;
   }
 
